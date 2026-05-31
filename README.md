@@ -186,16 +186,6 @@ const record = registry.dispatch({
 
 The dispatch record contains patch-shaped output instead of host mutations. DOM, SVG, Canvas2D, WebGL, or an agent tool adapter can consume the same frame and records.
 
-## Research Transfer
-
-The package keeps the proven infinite-canvas ideas as serializable data rather than renderer-owned state:
-
-- tldraw-style page/world coordinates, viewport coordinates, and screen coordinates map to `screenToWorld`, `worldToScreen`, and `canvasViewportWorldRect`.
-- D3/Fabric/Konva-style scale+translate math maps to immutable camera plans and pointer-anchored `planCanvasZoomAt`.
-- React Flow and tldraw fit/constraint ideas map to `planCanvasFitBounds` and `constrainCanvasCamera`.
-- Pixi viewport's removable behavior plugins map to structural tools such as `createPanCanvasTool`, `createZoomCanvasTool`, and `createMarqueeSelectCanvasTool`.
-- Excalidraw-style app state, selection state, grid state, and tool state stay explicit in `FrontierCanvasSession`, frame records, and patch outputs.
-
 ## Tool Extensibility
 
 Tools are structural records with optional handlers. A future `frontier-tools` bridge can expose the same tool definitions to agents without making this package depend on it.
