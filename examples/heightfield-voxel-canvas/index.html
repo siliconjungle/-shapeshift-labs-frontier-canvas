@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Frontier Heightfield Voxel Canvas</title>
+    <link rel="stylesheet" href="/src/styles.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "@shapeshift-labs/frontier": "/packages/frontier/dist/index.js",
+          "@shapeshift-labs/frontier/clone": "/packages/frontier/dist/clone.js",
+          "@shapeshift-labs/frontier/registry": "/packages/frontier/dist/registry.js",
+          "@shapeshift-labs/frontier-tools": "/packages/frontier-tools/dist/index.js",
+          "@shapeshift-labs/frontier-canvas": "/packages/frontier-canvas/dist/index.js",
+          "@shapeshift-labs/frontier-canvas-tools": "/packages/frontier-canvas-tools/dist/index.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <canvas id="scene" aria-label="Raw WebGL2 heightfield canvas"></canvas>
+
+      <section class="toolbar" aria-label="Terrain tools">
+        <div class="tool-tray" role="radiogroup" aria-label="Canvas tool mode">
+          <button class="tool-button" type="button" data-tool="canvas.pan" aria-label="Pan canvas" title="Pan">✋</button>
+          <button class="tool-button active" type="button" data-tool="terrain.brush" aria-label="Paint terrain" title="Brush">✎</button>
+          <button class="tool-button" type="button" data-tool="terrain.path" aria-label="Paint path" title="Path">⌁</button>
+          <button class="tool-button" type="button" data-tool="terrain.stairs" aria-label="Paint stairs" title="Stairs">▤</button>
+          <button class="tool-button" type="button" data-tool="terrain.line" aria-label="Paint line" title="Line">╱</button>
+          <button class="tool-button" type="button" data-tool="terrain.rect" aria-label="Paint filled rectangle" title="Rectangle">▣</button>
+          <button class="tool-button" type="button" data-tool="terrain.rectOutline" aria-label="Paint rectangle outline" title="Rectangle outline">□</button>
+          <button class="tool-button" type="button" data-tool="terrain.erase" aria-label="Erase terrain" title="Eraser">⌫</button>
+          <button class="tool-button" type="button" data-tool="terrain.fill" aria-label="Fill terrain" title="Fill">◩</button>
+          <button class="tool-button" type="button" data-tool="terrain.raise" aria-label="Raise terrain" title="Raise">↑</button>
+          <button class="tool-button" type="button" data-tool="terrain.lower" aria-label="Lower terrain" title="Lower">↓</button>
+          <button class="tool-button" type="button" data-tool="terrain.level" aria-label="Set terrain height" title="Level">=</button>
+          <button class="tool-button" type="button" data-tool="terrain.sample" aria-label="Sample tile" title="Sample">⌖</button>
+        </div>
+      </section>
+
+      <section class="settings-panel" aria-label="Selected tool settings">
+        <div class="tool-row">
+          <label>
+            Height / Step
+            <input id="height-step" type="range" min="1" max="8" value="1" step="1">
+          </label>
+          <output id="height-step-value">1</output>
+        </div>
+
+        <div class="tool-row">
+          <label>
+            Brush
+            <input id="brush-size" type="range" min="1" max="5" value="1" step="1">
+          </label>
+          <output id="brush-size-value">1</output>
+        </div>
+
+        <div class="tool-row split">
+          <label>
+            Shape
+            <select id="shape-mode">
+              <option value="full">Full block</option>
+              <option value="boxy">Boxy blob</option>
+              <option value="rounded" selected>Rounded blob</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="tool-row split">
+          <label>
+            Texture Rule
+            <select id="texture-shape-mode">
+              <option value="full">Full</option>
+              <option value="boxy">Boxy</option>
+              <option value="rounded" selected>Rounded</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="tool-row split">
+          <label>
+            Top
+            <select id="top-mode">
+              <option value="flat">Flat</option>
+              <option value="beveled" selected>Beveled</option>
+              <option value="rounded">Rounded</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="toggle-row">
+          <input id="fill-contiguous" type="checkbox" checked>
+          <span>Contiguous fill</span>
+        </label>
+
+        <div class="panel-heading">Lighting</div>
+
+        <div class="tool-row">
+          <label>
+            Exposure
+            <input id="light-exposure" type="range" min="70" max="140" value="100" step="1">
+          </label>
+          <output id="light-exposure-value">100</output>
+        </div>
+
+        <div class="tool-row">
+          <label>
+            Walls
+            <input id="wall-contrast" type="range" min="0" max="60" value="16" step="1">
+          </label>
+          <output id="wall-contrast-value">16</output>
+        </div>
+
+        <div class="tool-row">
+          <label>
+            Edges
+            <input id="edge-strength" type="range" min="0" max="80" value="34" step="1">
+          </label>
+          <output id="edge-strength-value">34</output>
+        </div>
+
+        <div class="tool-row">
+          <label>
+            Shadows
+            <input id="shadow-strength" type="range" min="0" max="100" value="82" step="1">
+          </label>
+          <output id="shadow-strength-value">82</output>
+        </div>
+
+        <div class="panel-heading">Brush Faces</div>
+
+        <div class="prefab-grid four">
+          <label>
+            Base
+            <select id="prefab-base-top">
+              <option value="grass" selected>Grass</option>
+              <option value="stone">Stone</option>
+              <option value="clay">Clay</option>
+            </select>
+          </label>
+          <label>
+            Top
+            <select id="prefab-top">
+              <option value="grass" selected>Grass</option>
+              <option value="stone">Stone</option>
+              <option value="clay">Clay</option>
+            </select>
+          </label>
+          <label>
+            Wall
+            <select id="prefab-side">
+              <option value="grass">Grass</option>
+              <option value="stone">Stone</option>
+              <option value="clay" selected>Clay</option>
+            </select>
+          </label>
+          <label>
+            Bevel
+            <select id="prefab-bevel">
+              <option value="grass" selected>Grass</option>
+              <option value="stone">Stone</option>
+              <option value="clay">Clay</option>
+            </select>
+          </label>
+          <label>
+            Foot
+            <select id="prefab-foot">
+              <option value="grass">Grass</option>
+              <option value="stone">Stone</option>
+              <option value="clay" selected>Clay</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="tool-group compact" aria-label="Terrain reset controls">
+          <button id="reset-camera" class="tool-button text" type="button">Fit</button>
+          <button id="reset-terrain" class="tool-button text danger" type="button">Reset</button>
+        </div>
+      </section>
+
+      <section class="zoom-hud" aria-label="Zoom controls">
+        <button id="zoom-out" class="tool-button" type="button" aria-label="Zoom out">−</button>
+        <output id="zoom-value">100%</output>
+        <button id="zoom-in" class="tool-button" type="button" aria-label="Zoom in">+</button>
+      </section>
+
+      <button id="debug-toggle" class="debug-toggle" type="button" aria-label="Open rewindable debug panel">Debug</button>
+
+      <aside id="debug-panel" class="debug-panel" aria-label="Rewindable debug panel">
+        <div class="debug-head">
+          <strong>Timeline</strong>
+          <span id="debug-label">0/0 live</span>
+        </div>
+        <input id="debug-timeline" type="range" min="0" max="0" value="0" step="1">
+        <div class="debug-actions">
+          <button id="debug-prev" type="button">Prev</button>
+          <button id="debug-next" type="button">Next</button>
+          <button id="debug-live" type="button">Live</button>
+          <button id="debug-revert" type="button">Revert</button>
+        </div>
+        <div class="debug-section">
+          <span>Action</span>
+          <code id="debug-action">initializing</code>
+        </div>
+        <div class="debug-grid">
+          <pre id="debug-history">[]</pre>
+          <pre id="debug-patches">[]</pre>
+          <pre id="debug-state">{}</pre>
+        </div>
+      </aside>
+
+      <aside class="status-panel" aria-label="Canvas state">
+        <div>
+          <span>Tool</span>
+          <strong id="status-tool">Raise</strong>
+        </div>
+        <div>
+          <span>Cell</span>
+          <strong id="status-cell">0,0</strong>
+        </div>
+        <div>
+          <span>Height</span>
+          <strong id="status-height">0</strong>
+        </div>
+        <div>
+          <span>Mesh</span>
+          <strong id="status-mesh">0 tris</strong>
+        </div>
+      </aside>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

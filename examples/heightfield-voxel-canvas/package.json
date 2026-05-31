@@ -1,0 +1,13 @@
+{
+  "name": "frontier-canvas-heightfield-voxel-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Raw WebGL2 orthographic heightfield canvas demo built on Frontier canvas tools.",
+  "scripts": {
+    "bench": "node bench.mjs",
+    "verify:agent": "node verify-agent.mjs",
+    "start": "node server.mjs",
+    "test": "node server.mjs --smoke && node test/autotile-rules.mjs && node bench.mjs --rounds 8 --size 28 --max-ms 40"
+  }
+}
